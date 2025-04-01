@@ -15,12 +15,9 @@ show_banner() {
     cat << 'EOF'
 __   _____  _   _ ____     ____    _    ____  ______   __
 \ \ / / _ \| | | |  _ \   |  _ \  / \  |  _ \|  _ \ \ / /
- \ V / | | | | | | |_) |  | | | |/ _ \ | | | | | | \ V /
-  | || |_| | |_| |  _ <   | |_| / ___ \| |_| | |_| || |
-  |_| \___/ \___/|_| \_\  |____/_/   \_\____/|____/ |_|
-
-       SWARM NODE MANAGER
-     Follow on X: @Daddy_savy
+ 
+SWARM NODE MANAGER
+     Follow on X: @bigsomto
 EOF
 }
 
@@ -115,8 +112,8 @@ setup_ngrok() {
 
     # Run Ngrok until user decides to stop it
     while true; do
-        echo -e "\n\033[1;34mStarting Ngrok on port 80...\033[0m"
-        ngrok http 80 &
+        echo -e "\n\033[1;34mStarting Ngrok on port 3000...\033[0m"
+        ngrok http 3000 &
         NGROK_PID=$!
         sleep 2
         echo -e "\n\033[1;32mNgrok is running! Access it at the displayed URL.\033[0m"
@@ -161,30 +158,75 @@ install_swarm() {
     echo -e "\n\033[1;34m=== Starting Swarm Node ===\033[0m"
     # Check and close any existing "swarm" screen session
     stop_screen_session "swarm"
+    # Launch new screen session for the Swarm Node
+    screen -S swarm -dm bash -c '
+        python3 -m venv .venv
+        source .venv/bin/activate
+        echo "Y" | ./run_rl_swarm.sh
+        exec bash
+    '
 
-    echo -e "\n\033[1;34m=== Starting Node ===\033[0m"
-    screen -S swarm -dm bash -c "source venv/bin/activate && python3 -m swarm.node"
+    show_banner
+    get_server_ip
+    show_backup_instructions
 
-    echo -e "\n\033[1;32mSwarm Node is up and running!\033[0m"
+    echo -e "\n\033[1;32mInstallation completed!\033[0m"
+    echo -e "Access your node at: http://$(hostname -I | awk '{print $1}'):3000/"
+    echo -e "Use 'screen -r swarm' to view the node session\n"
 }
 
-# Function to remove the Swarm Node completely
+# Function to remove the Swarm Node components (project-specific only)
 remove_swarm() {
-    echo -e "\n\033[1;34m=== Removing Swarm Node ===\033[0m"
+    echo -e "\n\033[1;31m=== Starting Removal ===\033[0m"
+    
+    # Stop and remove screen session
     stop_screen_session "swarm"
-    sudo rm -rf "$HOME/rl-swarm"
-    sudo apt-get remove -y docker-ce docker-ce-cli containerd.io
-    echo -e "\033[1;32mSwarm Node has been removed successfully!\033[0m"
+
+    # Remove project files
+    if [ -d "$HOME/rl-swarm" ]; then
+        echo -e "\033[1;33mRemoving project files...\033[0m"
+        sudo rm -rf "$HOME/rl-swarm"
+    fi
+
+    # If Docker containers were started solely for this project, attempt to remove them
+    if [ -d "$HOME/rl-swarm" ]; then
+        echo -e "\033[1;33mRemoving Docker containers...\033[0m"
+        (cd "$HOME/rl-swarm" && docker compose down --volumes)
+    fi
+
+    echo -e "\n\033[1;32mRemoval completed!\033[0m"
+    echo -e "Preserved items:"
+    echo -e " - Docker"
+    echo -e " - Node.js"
+    echo -e " - Python"
+    echo -e " - System packages"
+    echo -e "\n\033[1;33mNote: Manual removal may be needed for:"
+    echo -e " - HuggingFace credentials"
+    echo -e " - Global Yarn packages\033[0m"
 }
 
-# Main menu loop
+# Main loop to handle user menu choice
 while true; do
     show_menu
     case $menu_choice in
-        1) install_swarm ;;
-        2) remove_swarm ;;
-        3) setup_ngrok ;;
-        4) exit 0 ;;
-        *) echo -e "\033[1;31mInvalid choice! Please select a valid option.\033[0m" ;;
+        1)
+            install_swarm
+            break
+            ;;
+        2)
+            remove_swarm
+            break
+            ;;
+        3)
+            setup_ngrok
+            ;;
+        4)
+            echo -e "\nExiting..."
+            exit 0
+            ;;
+        *)
+            echo -e "\n\033[1;31mInvalid option! Please try again.\033[0m"
+            sleep 2
+            ;;
     esac
 done
