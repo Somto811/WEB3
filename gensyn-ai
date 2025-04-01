@@ -91,12 +91,12 @@ setup_ngrok() {
     ARCH=$(uname -m)
     if [[ "$ARCH" == "x86_64" ]]; then
         echo -e "\n\033[1;34mInstalling Ngrok for x86_64 (amd64) systems...\033[0m"
-        wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
+        wget -q https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
         tar -xvzf ngrok-v3-stable-linux-amd64.tgz
         sudo mv ngrok /usr/local/bin/
     elif [[ "$ARCH" == "aarch64" ]]; then
         echo -e "\n\033[1;34mInstalling Ngrok for ARM64 (aarch64) systems...\033[0m"
-        wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-arm64.tgz
+        wget -q https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-arm64.tgz
         tar -xvzf ngrok-stable-linux-arm64.tgz
         sudo mv ngrok /usr/local/bin/
     else
@@ -110,9 +110,21 @@ setup_ngrok() {
     echo -e "1. Go to: \033[1;36mhttps://ngrok.com/\033[0m and sign up using your email."
     echo -e "2. After signing up, go to the 'AuthToken' section and copy the command shown."
     echo -e "3. Open your VPS terminal and paste the command to authenticate Ngrok."
-    echo -e "4. Run the following command: \033[1;36mngrok http 3000\033[0m"
-    echo -e "5. A URL with an Ngrok domain will appear—click it to access Gensyn."
-    echo -e "6. Now, log in using your email. ✅ \033[1;32m(Tested & Working)\033[0m\n"
+
+    read -p "Press Enter after completing the steps above..."
+
+    # Run Ngrok until user decides to stop it
+    while true; do
+        echo -e "\n\033[1;34mStarting Ngrok on port 3000...\033[0m"
+        ngrok http 3000 &
+        NGROK_PID=$!
+        sleep 2
+        echo -e "\n\033[1;32mNgrok is running! Access it at the displayed URL.\033[0m"
+        echo -e "\n\033[1;33mPress [Ctrl+C] to stop Ngrok manually when done.\033[0m"
+        wait $NGROK_PID
+        read -p "Press Enter to return to the main menu..."
+        break
+    done
 }
 
 # Function to install the Swarm Node
