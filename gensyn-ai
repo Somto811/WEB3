@@ -1,0 +1,186 @@
+#!/bin/bash
+set -euo pipefail
+
+# Function to stop a screen session if it exists
+stop_screen_session() {
+    local session="$1"
+    if screen -list | grep -q "$session"; then
+        echo -e "\033[1;33mStopping existing '$session' session...\033[0m"
+        screen -X -S "$session" quit
+    fi
+}
+
+# ASCII Art Banner Function
+show_banner() {
+    cat << 'EOF'
+__   _____  _   _ ____     ____    _    ____  ______   __
+\ \ / / _ \| | | |  _ \   |  _ \  / \  |  _ \|  _ \ \ / /
+ \ V / | | | | | | |_) |  | | | |/ _ \ | | | | | | \ V /
+  | || |_| | |_| |  _ <   | |_| / ___ \| |_| | |_| || |
+  |_| \___/ \___/|_| \_\  |____/_/   \_\____/|____/ |_|
+
+       SWARM NODE MANAGER
+     Follow on X: @Daddy_savy
+EOF
+}
+
+# Function to display main menu with colorized output
+show_menu() {
+    clear
+    show_banner
+    echo -e "\n\033[1;34m=== Main Menu ===\033[0m"
+    echo "1) Install and Setup Swarm Node"
+    echo "2) Remove Swarm Node Completely"
+    echo "3) Exit"
+    read -p "Choose an option (1-3): " menu_choice
+}
+
+# Function to display server connection details
+get_server_ip() {
+    echo -e "\n\033[1;34m=== Server Connection Details ===\033[0m"
+    if command -v curl &>/dev/null; then
+        echo "External IP: $(curl -s ifconfig.me)"
+    else
+        echo "Install curl to view external IP: sudo apt install curl"
+    fi
+    echo "Internal IP: $(hostname -I | awk '{print $1}')"
+}
+
+# Function to display backup instructions
+show_backup_instructions() {
+    echo -e "\n\033[1;34m=== Backup Instructions ===\033[0m"
+    echo "1) Node Name:"
+    echo "   When the node starts, search for the word 'Hello' in the logs (use CTRL+SHIFT+F) to find your node name."
+    echo "2) Node .pem file:"
+    echo "   Backup the file 'swarm.pem' located in /root/rl-swarm/ as it is required for future recovery."
+}
+
+# Function to install Docker (if not already installed/working)
+install_docker() {
+    if ! command -v docker &>/dev/null || ! docker run --rm hello-world &>/dev/null; then
+        echo -e "\n\033[1;34m=== Installing Docker ===\033[0m"
+        sudo apt-get remove -y docker.io docker-doc docker-compose podman-docker containerd runc || true
+        sudo apt-get update
+        sudo apt-get install -y ca-certificates curl gnupg
+        sudo install -m 0755 -d /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+        sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+        echo \
+        "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+$(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+        sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+        sudo apt-get update
+        sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+        sudo docker run --rm hello-world
+        sudo usermod -aG docker "$USER"
+        echo -e "\033[1;33mYou may need to logout and login again for Docker group changes.\033[0m"
+    else
+        echo -e "\n\033[1;32mDocker is already installed and working!\033[0m"
+    fi
+}
+
+# Function to install the Swarm Node
+install_swarm() {
+    echo -e "\n\033[1;34m=== Starting Installation ===\033[0m"
+    sudo apt-get update && sudo apt-get upgrade -y
+    sudo apt-get install -y screen curl iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils ncdu unzip
+
+    install_docker
+
+    echo -e "\n\033[1;34m=== Installing Python, Node.js, and Yarn ===\033[0m"
+    sudo apt-get install -y python3 python3-pip python3-venv
+    curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+    sudo npm install -g yarn
+    curl -o- -L https://yarnpkg.com/install.sh | bash
+    export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+    set +u
+    source ~/.bashrc
+    set -u
+
+    echo -e "\n\033[1;34m=== HuggingFace Setup ===\033[0m"
+    echo "To sign up, visit: https://huggingface.co/"
+    echo "To get your access token, visit: https://huggingface.co/settings/tokens"
+    read -p "Enter your HuggingFace Access Token: " hf_token
+    echo "HUGGINGFACE_TOKEN=$hf_token" >> "$HOME/.bashrc"
+
+    echo -e "\n\033[1;34m=== Cloning Repository ===\033[0m"
+    cd "$HOME"
+    [ -d "rl-swarm" ] && sudo rm -rf rl-swarm
+    git clone https://github.com/gensyn-ai/rl-swarm/
+    cd rl-swarm
+
+    echo -e "\n\033[1;34m=== Starting Swarm Node ===\033[0m"
+    # Check and close any existing "swarm" screen session
+    stop_screen_session "swarm"
+    # Launch new screen session for the Swarm Node
+    screen -S swarm -dm bash -c '
+        python3 -m venv .venv
+        source .venv/bin/activate
+        echo "Y" | ./run_rl_swarm.sh
+        exec bash
+    '
+
+    show_banner
+    get_server_ip
+    show_backup_instructions
+
+    echo -e "\n\033[1;32mInstallation completed!\033[0m"
+    echo -e "Access your node at: http://$(hostname -I | awk '{print $1}'):3000/"
+    echo -e "Use 'screen -r swarm' to view the node session\n"
+}
+
+# Function to remove the Swarm Node components (project-specific only)
+remove_swarm() {
+    echo -e "\n\033[1;31m=== Starting Removal ===\033[0m"
+    
+    # Stop and remove screen session
+    stop_screen_session "swarm"
+
+    # Remove project files
+    if [ -d "$HOME/rl-swarm" ]; then
+        echo -e "\033[1;33mRemoving project files...\033[0m"
+        sudo rm -rf "$HOME/rl-swarm"
+    fi
+
+    # If Docker containers were started solely for this project, attempt to remove them
+    if [ -d "$HOME/rl-swarm" ]; then
+        echo -e "\033[1;33mRemoving Docker containers...\033[0m"
+        (cd "$HOME/rl-swarm" && docker compose down --volumes)
+    fi
+
+    echo -e "\n\033[1;32mRemoval completed!\033[0m"
+    echo -e "Preserved items:"
+    echo -e " - Docker"
+    echo -e " - Node.js"
+    echo -e " - Python"
+    echo -e " - System packages"
+    echo -e "\n\033[1;33mNote: Manual removal may be needed for:"
+    echo -e " - HuggingFace credentials"
+    echo -e " - Global Yarn packages\033[0m"
+}
+
+# Main loop to handle user menu choice
+while true; do
+    show_menu
+    case $menu_choice in
+        1)
+            install_swarm
+            break
+            ;;
+        2)
+            remove_swarm
+            break
+            ;;
+        3)
+            echo -e "\nExiting..."
+            exit 0
+            ;;
+        *)
+            echo -e "\n\033[1;31mInvalid option! Please try again.\033[0m"
+            sleep 2
+            ;;
+    esac
+done
