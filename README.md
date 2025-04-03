@@ -1,15 +1,15 @@
-```markdown
-# Swarm Node Manager
+Swarm Node Manager
 
-## Requirements
+Requirements
 | Component   | Specification |
 |-------------|---------------|
 | CPU         | AMD64 or ARM  |
 | RAM         | 25GB          |
 
-## Ngrok Installation
+ Ngrok Installation
 
-### AMD64 Machines
+```markdown
+**AMD64 Installation:**
 ```bash
 wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
 tar -xvzf ngrok-v3-stable-linux-amd64.tgz
