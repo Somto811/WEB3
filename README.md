@@ -1,3 +1,4 @@
+
 ```markdown
 # Swarm Node Manager
 
@@ -9,15 +10,20 @@
 
 ## Ngrok Installation
 
-### For amd64
+### amd64 Machines
 ```bash
-wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz && tar -xvzf ngrok-v3-stable-linux-amd64.tgz && sudo mv ngrok /usr/local/bin/
+wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
+tar -xvzf ngrok-v3-stable-linux-amd64.tgz
+sudo mv ngrok /usr/local/bin/
 ```
 
-### For arm
+### arm Machines
 ```bash
-wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-arm.tgz && tar -xvzf ngrok-v3-stable-linux-arm.tgz && sudo mv ngrok /usr/local/bin/
+wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-arm.tgz
+tar -xvzf ngrok-v3-stable-linux-arm.tgz
+sudo mv ngrok /usr/local/bin/
 ```
+
 
 ### 2. Configure Ngrok
 1. Visit [ngrok.com](https://ngrok.com)
