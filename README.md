@@ -25,13 +25,22 @@ tar -xvzf ngrok-v3-stable-linux-amd64.tgz
 sudo mv ngrok /usr/local/bin/  
 ```  
 
-### 2. Configure Ngrok  
-1. Sign up at [ngrok.com](https://ngrok.com)  
-2. Get your authtoken from dashboard  
-3. Run:  
-```bash  
-ngrok config add-authtoken YOUR_TOKEN_HERE  
-```  
+### 2. Configure Ngrok
+1. Visit [ngrok.com](https://ngrok.com)
+2. Sign up using your email
+3. Go to `Your Authtoken` section
+4. Click "Show Authtoken" and copy the command
+5. On your VPS terminal, paste the authtoken command:
+```bash
+ngrok config add-authtoken YOUR_TOKEN_HERE
+```
+6. Start Ngrok tunnel:
+```bash
+ngrok http 3000
+```
+7. Use the generated Ngrok URL (e.g., `https://abc123.ngrok.io`) to:
+   - Access the Gynsyn page
+   - Authorize with your Google account
 
 ### 3. Create Swarm Manager Script  
 We will create a file named `swarm.sh` and paste the script into it.  
