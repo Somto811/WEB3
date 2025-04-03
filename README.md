@@ -1,29 +1,23 @@
 ```markdown
-# 🚀 Swarm Node Manager
+# Swarm Node Manager
 
-![Swarm Logo](https://i.imgur.com/J3b8X7C.png) *(optional logo)*
+## Requirements
+| Component | Specification |
+|-----------|---------------|
+| CPU       | amd64 or arm  |
+| RAM       | 25GB          |
 
-## 📌 Features
-- One-click installation of all dependencies  
-- Automatic Ngrok tunnel configuration  
-- GPU support (NVIDIA recommended)  
-- Clean removal option  
+## Ngrok Installation
 
-## 🛠️ Prerequisites  
-| Requirement        | Specification               |  
-|--------------------|-----------------------------|  
-| CPU Architecture   | `arm64` or `amd64`          |  
-| RAM                | 25GB (recommended)          |  
-| OS                 | Ubuntu 22.04 (preferred)    |  
+### For amd64
+```bash
+wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz && tar -xvzf ngrok-v3-stable-linux-amd64.tgz && sudo mv ngrok /usr/local/bin/
+```
 
-## 🚀 Quick Start  
-
-### 1. Install Ngrok  
-```bash  
-wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz  
-tar -xvzf ngrok-v3-stable-linux-amd64.tgz  
-sudo mv ngrok /usr/local/bin/  
-```  
+### For arm
+```bash
+wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-arm.tgz && tar -xvzf ngrok-v3-stable-linux-arm.tgz && sudo mv ngrok /usr/local/bin/
+```
 
 ### 2. Configure Ngrok
 1. Visit [ngrok.com](https://ngrok.com)
