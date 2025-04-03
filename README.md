@@ -1,27 +1,26 @@
-Swarm Node Manager
+# **SWARM NODE MANAGER**  
 
-Requirements
-| Component   | Specification |
-|-------------|---------------|
-| CPU         | AMD64 or ARM  |
-| RAM         | 25GB          |
+## **REQUIREMENTS**  
+| Component   | Specification |  
+|-------------|---------------|  
+| CPU         | AMD64 or ARM  |  
+| RAM         | 25GB          |  
 
- Ngrok Installation
+## **NGROK INSTALLATION**  
 
-```markdown
-**AMD64 Installation:**
+### **AMD64 Machines**  
 ```bash
 wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
 tar -xvzf ngrok-v3-stable-linux-amd64.tgz
 sudo mv ngrok /usr/local/bin/
-```
+```  
 
-### arm Machines
+### **ARM Machines**  
 ```bash
-wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-arm.tgz
-tar -xvzf ngrok-v3-stable-linux-arm.tgz
+wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-arm64.tgz
+tar -xvzf ngrok-v3-stable-linux-arm64.tgz
 sudo mv ngrok /usr/local/bin/
-```
+```  
 
 
 ### 2. Configure Ngrok
